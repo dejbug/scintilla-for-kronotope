@@ -417,6 +417,10 @@ public:
 	virtual void SetUnicodeMode(bool unicodeMode_)=0;
 	virtual void SetDBCSMode(int codePage)=0;
 	virtual void SetBidiR2L(bool bidiR2L_)=0;
+	
+#if PLAT_WIN == 1
+	virtual void YieldToParentOverdraw(Surface &, int row, int index)=0;
+#endif
 };
 
 /**

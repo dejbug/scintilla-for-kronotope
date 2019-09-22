@@ -2254,6 +2254,8 @@ void EditView::PaintText(Surface *surfaceWindow, const EditModel &model, PRectan
 						const PRectangle rcCopyArea = PRectangle::FromInts(vsDraw.textStart - leftTextOverlap, yposScreen,
 							static_cast<int>(rcClient.right - vsDraw.rightMarginWidth),
 							yposScreen + vsDraw.lineHeight);
+							
+						surfaceWindow->YieldToParentOverdraw(*pixmapLine, visibleLine, subLine);
 						surfaceWindow->Copy(rcCopyArea, from, *pixmapLine);
 					}
 

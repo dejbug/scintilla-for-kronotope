@@ -489,6 +489,8 @@ public:
 	void SetUnicodeMode(bool unicodeMode_) override;
 	void SetDBCSMode(int codePage_) override;
 	void SetBidiR2L(bool bidiR2L_) override;
+	
+	void YieldToParentOverdraw(Surface & surface, int line, int row_index) override;
 };
 
 SurfaceGDI::SurfaceGDI() noexcept {
@@ -970,6 +972,27 @@ void SurfaceGDI::SetDBCSMode(int codePage_) {
 void SurfaceGDI::SetBidiR2L(bool) {
 }
 
+void SurfaceGDI::YieldToParentOverdraw(Surface & surface, int line, int row_index) {
+	static struct {
+		NMHDR hdr;
+		HDC hdc;
+		int line;
+		int row_index;
+	} notification;
+
+	HWND hctrl = ::WindowFromDC(hdc);
+	HWND hprnt = ::GetParent(hctrl);
+	UINT nctrl = ::GetDlgCtrlID(hctrl);
+
+	notification.hdr.hwndFrom = hctrl;
+	notification.hdr.idFrom = nctrl;
+	notification.hdr.code = 2033;
+	notification.hdc = ((SurfaceGDI&)surface).hdc;
+	notification.line = line;
+	notification.row_index = row_index;
+	::SendMessage(hprnt, WM_NOTIFY, nctrl, (LPARAM)(&notification));
+}
+
 #if defined(USE_D2D)
 
 class BlobInline;
@@ -1056,6 +1079,8 @@ public:
 	void SetUnicodeMode(bool unicodeMode_) override;
 	void SetDBCSMode(int codePage_) override;
 	void SetBidiR2L(bool bidiR2L_) override;
+	
+	void YieldToParentOverdraw(Surface &, int, int) override {}
 };
 
 SurfaceD2D::SurfaceD2D() noexcept :
