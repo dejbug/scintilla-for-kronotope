@@ -1,2 +1,3 @@
 /scintilla/bin/
 /scintilla/win32/
+*.patch

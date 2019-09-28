@@ -1437,6 +1437,17 @@ sptr_t ScintillaWin::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam
 				RightButtonDownWithModifiers(pt, ::GetMessageTime(), MouseModifiers(wParam));
 			}
 			break;
+
+		case WM_MBUTTONDOWN: {
+			fingerScroller.onButtonDown(PointFromLParam(lParam));
+		}
+		break;
+
+		case WM_MBUTTONUP: {
+			fingerScroller.onButtonUp();
+		}
+		break;
+
 		case WM_SETCURSOR:
 			if (LOWORD(lParam) == HTCLIENT) {
 				if (inDragDrop == ddDragging) {
@@ -1610,6 +1621,7 @@ sptr_t ScintillaWin::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam
 
 		case WM_CAPTURECHANGED:
 			capturedMouse = false;
+			fingerScroller.onCaptureLost();
 			return 0;
 
 		case WM_IME_SETCONTEXT:

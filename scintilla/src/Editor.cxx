@@ -109,7 +109,7 @@ static constexpr bool IsAllSpacesOrTabs(std::string_view sv) noexcept {
 	return true;
 }
 
-Editor::Editor() : durationWrapOneLine(0.00001, 0.000001, 0.0001) {
+Editor::Editor() : durationWrapOneLine(0.00001, 0.000001, 0.0001), fingerScroller(*this) {
 	ctrlID = 0;
 
 	stylesValid = false;
@@ -4756,6 +4756,9 @@ void Editor::ButtonMoveWithModifiers(Point pt, unsigned int, int modifiers) {
 		DwellEnd(true);
 	}
 
+	if (fingerScroller.move(pt))
+		return;
+
 	SelectionPosition movePos = SPositionFromLocation(pt, false, false,
 		AllowVirtualSpace(virtualSpaceOptions, sel.IsRectangular()));
 	movePos = MovePositionOutsideChar(movePos, sel.MainCaret() - movePos.Position());
@@ -8279,4 +8282,39 @@ sptr_t Editor::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam) {
 	}
 	//Platform::DebugPrintf("end wnd proc\n");
 	return 0;
+}
+
+
+FingerScroller::FingerScroller(Editor & editor) : editor(editor) {
+}
+
+void FingerScroller::onButtonDown(Point const && pt) {
+	hitPoint = pt;
+	editor.DisplayCursor(Window::cursorHand);
+	editor.SetMouseCapture(buttonDown = true);
+}
+
+void FingerScroller::onButtonUp() {
+	editor.SetMouseCapture(buttonDown = false);
+}
+
+void FingerScroller::onCaptureLost() {
+	buttonDown = false;
+}
+
+bool FingerScroller::move(Point const & pt) {
+	if (!buttonDown) return false;
+	auto const topline = editor.TopLineOfMain();
+	auto const hitrow = static_cast<int>(hitPoint.y) / editor.vs.lineHeight;
+	auto const currow = static_cast<int>(pt.y) / editor.vs.lineHeight;
+
+	if (currow < hitrow) {
+		editor.ScrollTo(topline + 1);
+		hitPoint.y = pt.y;
+	}
+	else if (currow > hitrow) {
+		editor.ScrollTo(topline - 1);
+		hitPoint.y = pt.y;
+	}
+	return true;
 }

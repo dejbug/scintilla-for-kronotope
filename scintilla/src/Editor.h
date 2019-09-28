@@ -143,9 +143,26 @@ struct WrapPending {
 	}
 };
 
+class Editor;
+
+struct FingerScroller {
+	FingerScroller(Editor & editor);
+	void onButtonDown(Point const && pt);
+	void onButtonUp();
+	void onCaptureLost();
+	bool move(Point const & pt);
+private:
+	Editor & editor;
+	bool buttonDown{ false };
+	Point hitPoint{ 0, 0 };
+};
+
+
 /**
  */
 class Editor : public EditModel, public DocWatcher {
+	friend FingerScroller;
+
 protected:	// ScintillaBase subclass needs access to much of Editor
 
 	/** On GTK+, Scintilla is a container widget holding two scroll bars
@@ -253,6 +270,8 @@ protected:	// ScintillaBase subclass needs access to much of Editor
 	ActionDuration durationWrapOneLine;
 
 	bool convertPastes;
+
+	FingerScroller fingerScroller;
 
 	Editor();
 	// Deleted so Editor objects can not be copied.
