@@ -146,17 +146,23 @@ struct WrapPending {
 class Editor;
 
 struct FingerScroller {
-	FingerScroller(Editor & editor);
-	void onButtonDown(Point const && pt);
+	FingerScroller(Editor & editor) noexcept;
+	void onButtonDown(Point const & pt);
 	void onButtonUp();
-	void onCaptureLost();
+	void onCaptureLost() noexcept { buttonDown = false; }
 	bool move(Point const & pt);
+	void setMode(int mode) noexcept;
+	int getMode() const noexcept { return mode; }
+	bool isActive() const noexcept { return mode & SC_FINGER_SCROLL_MODE_ACTIVE_BIT; }
+	bool isStrict() const noexcept { return mode & SC_FINGER_SCROLL_MODE_STRICT_BIT; }
+	bool isMouseWheelDisabled() const noexcept { return buttonDown && isStrict() && isActive(); }
+	bool isButtonDown() const noexcept { return buttonDown; }
 private:
 	Editor & editor;
+	int mode{ SC_FINGER_SCROLL_MODE_DISABLED };
 	bool buttonDown{ false };
 	Point hitPoint{ 0, 0 };
 };
-
 
 /**
  */

@@ -4756,8 +4756,7 @@ void Editor::ButtonMoveWithModifiers(Point pt, unsigned int, int modifiers) {
 		DwellEnd(true);
 	}
 
-	if (fingerScroller.move(pt))
-		return;
+	if (fingerScroller.move(pt)) return;
 
 	SelectionPosition movePos = SPositionFromLocation(pt, false, false,
 		AllowVirtualSpace(virtualSpaceOptions, sel.IsRectangular()));
@@ -8277,6 +8276,13 @@ sptr_t Editor::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam) {
 	case SCI_COUNTCODEUNITS:
 		return pdoc->CountUTF16(static_cast<Sci::Position>(wParam), lParam);
 
+	case SCI_SETFINGERSCROLLMODE:
+		fingerScroller.setMode(wParam);
+		return 0;
+
+	case SCI_GETFINGERSCROLLMODE:
+		return fingerScroller.getMode();
+
 	default:
 		return DefWndProc(iMessage, wParam, lParam);
 	}
@@ -8285,36 +8291,36 @@ sptr_t Editor::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam) {
 }
 
 
-FingerScroller::FingerScroller(Editor & editor) : editor(editor) {
+FingerScroller::FingerScroller(Editor & editor) noexcept : editor(editor) {
 }
 
-void FingerScroller::onButtonDown(Point const && pt) {
+void FingerScroller::onButtonDown(Point const & pt) {
+	if (!isActive()) return;
 	hitPoint = pt;
 	editor.DisplayCursor(Window::cursorHand);
 	editor.SetMouseCapture(buttonDown = true);
 }
 
 void FingerScroller::onButtonUp() {
-	editor.SetMouseCapture(buttonDown = false);
-}
-
-void FingerScroller::onCaptureLost() {
 	buttonDown = false;
+	if (!isActive()) return;
+	editor.SetMouseCapture(buttonDown);
 }
 
 bool FingerScroller::move(Point const & pt) {
-	if (!buttonDown) return false;
-	auto const topline = editor.TopLineOfMain();
+	if (!isActive() || !buttonDown) return false;
+	// if (!editor.vs.lineHeight) return false;
 	auto const hitrow = static_cast<int>(hitPoint.y) / editor.vs.lineHeight;
 	auto const currow = static_cast<int>(pt.y) / editor.vs.lineHeight;
-
-	if (currow < hitrow) {
-		editor.ScrollTo(topline + 1);
-		hitPoint.y = pt.y;
-	}
-	else if (currow > hitrow) {
-		editor.ScrollTo(topline - 1);
-		hitPoint.y = pt.y;
-	}
+	if (currow == hitrow) return true;
+	auto const rowdelta = currow < hitrow ? +1 : -1;
+	editor.ScrollTo(editor.TopLineOfMain() + rowdelta);
+	hitPoint.y = pt.y;
 	return true;
+}
+
+void FingerScroller::setMode(int mode) noexcept {
+	if (this->mode == mode) return;
+	this->mode = mode;
+	if (!isActive() && buttonDown) buttonDown = false;
 }

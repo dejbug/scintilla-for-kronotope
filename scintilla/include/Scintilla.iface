@@ -2788,6 +2788,20 @@ get int GetRepresentation=2666(string encodedCharacter, stringresult representat
 # Remove a character representation.
 fun void ClearRepresentation=2667(string encodedCharacter,)
 
+# *_STRICT disables the mouse wheel while drag-scrolling.
+enu FingerScrollMode=SC_FINGER_SCROLL_MODE_
+val SC_FINGER_SCROLL_MODE_DISABLED=0
+val SC_FINGER_SCROLL_MODE_ACTIVE_BIT=1
+val SC_FINGER_SCROLL_MODE_STRICT_BIT=2
+val SC_FINGER_SCROLL_MODE_ACTIVE=1
+val SC_FINGER_SCROLL_MODE_STRICT=3
+
+# Enable PDF-style drag-scrolling with the middle MB.
+fun void SetFingerScrollMode=2724(FingerScrollMode fingerScrollMode,)
+
+# Whether PDF-style drag-scrolling is enabled.
+get FingerScrollMode GetFingerScrollMode=2725(,)
+
 # Start notifying the container of all key presses and commands.
 fun void StartRecord=3001(,)
 

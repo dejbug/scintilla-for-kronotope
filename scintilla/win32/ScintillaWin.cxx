@@ -1287,6 +1287,7 @@ sptr_t ScintillaWin::WndProc(unsigned int iMessage, uptr_t wParam, sptr_t lParam
 			break;
 
 		case WM_MOUSEWHEEL:
+			if (fingerScroller.isMouseWheelDisabled()) return 0;
 			if (!mouseWheelCaptures) {
 				// if the mouse wheel is not captured, test if the mouse
 				// pointer is over the editor window and if not, don't
